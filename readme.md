@@ -137,4 +137,4 @@ Es importante mencionar que la implementación actual del sistema de permisos y 
 
 # Pruebas
 
-Para agregar pruebas, considera utilizar un framework como Jest. Asegúrate de que tus pruebas cubran tanto las rutas como la lógica del negocio.
+El testing se realiza utilizando Jest y Supertest para asegurar la estabilidad de las funcionalidades CRUD. Cada prueba se ejecuta dentro de transacciones, que se revierten para evitar que los datos permanezcan en la base de datos, manteniéndola limpia y garantizando la independencia entre pruebas. Esto incluye pruebas para creación, lectura, actualización, y eliminación de entidades como favoritos, reseñas, y restaurantes, verificando tanto el comportamiento exitoso como los posibles errores.
