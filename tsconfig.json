@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES6",                          // Mantiene el objetivo en ES6
+    "module": "CommonJS",                     // Utiliza CommonJS para la compatibilidad con Node.js y Jest
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "rootDir": "./src",                       // Directorio raíz del código fuente
+    "outDir": "./dist",                       // Directorio de salida para la compilación
+    "strict": true,                           // Habilita todas las comprobaciones estrictas
+    "strictPropertyInitialization": false,    // Permitir que TypeORM maneje las inicializaciones
+    "esModuleInterop": true,                  // Permite la interoperabilidad entre módulos
+    "skipLibCheck": true,                     // Omite la comprobación de tipos en archivos de definición
+    "resolveJsonModule": true,                // Permite importar archivos JSON
+    "typeRoots": [
+      "./node_modules/@types",                // Raíz de tipos para módulos instalados
+      "./@types"                              // Raíz de tipos personalizada
+    ]
+  },
+  "include": [
+    "src/**/*",                               // Incluye todos los archivos en src
+    "src/@types/**/*.d.ts"                   // Incluye tipos personalizados
+  ],
+  "exclude": [
+    "node_modules",                           // Excluye la carpeta node_modules
+    "**/*.spec.ts",                           // Opcionalmente excluye archivos de prueba si no son necesarios para la compilación
+    "**/*.test.ts"                            // Opcionalmente excluye archivos de prueba si no son necesarios para la compilación
+  ]
+}
