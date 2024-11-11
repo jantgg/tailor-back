@@ -14,9 +14,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 // /backend/src/scripts/populateDatabase.ts
 const AppDataSource_1 = require("../data/AppDataSource");
-const Restaurant_1 = require("../modules/restaurants/entities/Restaurant");
-const Review_1 = require("../modules/restaurants/entities/Review");
-const User_1 = require("../modules/auth/entities/User");
+const Restaurant_1 = require("../modules/restaurants/Restaurant");
+const Review_1 = require("../modules/reviews/Review");
+const User_1 = require("../modules/auth/User");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const restaurants_json_1 = __importDefault(require("../data/restaurants.json"));
 function populateDatabase() {

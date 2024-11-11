@@ -5,10 +5,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authMiddleware = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const SECRET_KEY = process.env.JWT_SECRET || 'secretkey';
+const SECRET_KEY = process.env.JWT_SECRET || 'la_clave_secreta_123';
 const authMiddleware = (req, res, next) => {
-    var _a;
-    const token = (_a = req.headers['authorization']) === null || _a === void 0 ? void 0 : _a.split(' ')[1];
+    const authHeader = req.headers['authorization'];
+    const token = authHeader === null || authHeader === void 0 ? void 0 : authHeader.split(' ')[1];
+    console.log("Authorization Header:", authHeader); // Verificar que el encabezado esté presente
+    console.log("Token:", token); // Verificar el token extraído
     if (!token) {
         res.status(401).json({ error: 'Token no proporcionado' });
         return;
@@ -19,6 +21,7 @@ const authMiddleware = (req, res, next) => {
         next();
     }
     catch (error) {
+        console.error("Token verification error:", error); // Log para ver el error específico
         res.status(401).json({ error: 'Token no válido' });
     }
 };

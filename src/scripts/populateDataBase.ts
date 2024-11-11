@@ -1,8 +1,8 @@
 // /backend/src/scripts/populateDatabase.ts
 import { AppDataSource } from '../data/AppDataSource';
-import { Restaurant } from "../modules/restaurants/entities/Restaurant";
-import { Review } from "../modules/restaurants/entities/Review";
-import { User } from "../modules/auth/entities/User";
+import { Restaurant } from "../modules/restaurants/Restaurant";
+import { Review } from "../modules/reviews/Review";
+import { User } from "../modules/auth/User";
 import bcrypt from 'bcryptjs';
 
 import restaurantData from "../data/restaurants.json";
