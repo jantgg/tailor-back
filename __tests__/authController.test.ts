@@ -8,7 +8,7 @@
 import request from 'supertest';
 import app from '../src/app';
 import { AppDataSource } from '../src/data/AppDataSource';
-import { User } from '../src/modules/auth/entities/User';
+import { User } from '../src/modules/auth/User';
 
 // Configuración de usuarios de prueba
 const testUsername = process.env.TEST_USER_USERNAME || 'test-user';
@@ -71,7 +71,7 @@ describe('AuthController - Registro e Inicio de Sesión', () => {
     const res = await request(app)
       .post('/api/auth/register')
       .send({
-        username: `another-user-${Date.now()}`, // Nombre aleatorio para evitar conflictos
+        username: `another-user-${Date.now()}`,
         password: 'another-password',
       });
 

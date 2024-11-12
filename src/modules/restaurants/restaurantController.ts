@@ -23,25 +23,28 @@ export const getAllRestaurants = async (req: Request, res: Response): Promise<vo
 export const getRestaurantById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+    console.log(`Buscando restaurante con ID: ${id}`);
     const restaurant = await restaurantRepository.findByIdWithReviews(id);
 
     if (!restaurant) {
+      console.log(`Restaurante con ID ${id} no encontrado`);
       res.status(404).json({ message: 'Restaurante no encontrado' });
       return;
     }
 
-    // Calcular el rating promedio para el restaurante
+    console.log(`Restaurante encontrado: ${restaurant.name}`);
     const restaurantWithRating = {
       ...restaurant,
       averageRating: calculateRating(restaurant.reviews),
     };
 
-    res.json(restaurantWithRating);
+    res.status(200).json(restaurantWithRating);  // Añadir el estado explícito 200
   } catch (error) {
     console.error('Error al obtener restaurante por ID:', error);
     res.status(500).json({ message: 'Error al obtener restaurante por ID' });
   }
 };
+
 
 export const createRestaurant = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -79,29 +82,41 @@ export const updateRestaurant = async (req: Request, res: Response): Promise<voi
   try {
     const { id } = req.params;
     const data = req.body;
+    console.log(`Actualizando restaurante con ID: ${id}`);
     const updatedRestaurant = await restaurantRepository.updateRestaurant(id, data);
+
     if (!updatedRestaurant) {
+      console.log(`Restaurante con ID ${id} no encontrado para actualizar`);
       res.status(404).json({ message: 'Restaurante no encontrado' });
       return;
     }
-    res.json(updatedRestaurant);
+
+    console.log(`Restaurante actualizado: ${updatedRestaurant.name}`);
+    res.status(200).json(updatedRestaurant);
   } catch (error) {
     console.error('Error al actualizar restaurante:', error);
     res.status(500).json({ message: 'Error al actualizar restaurante' });
   }
 };
 
+
 export const deleteRestaurant = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+    console.log(`Eliminando restaurante con ID: ${id}`);
     const result = await restaurantRepository.deleteRestaurant(id);
+
     if (result.affected === 0) {
+      console.log(`Restaurante con ID ${id} no encontrado para eliminar`);
       res.status(404).json({ message: 'Restaurante no encontrado' });
       return;
     }
-    res.json({ message: 'Restaurante eliminado correctamente' });
+
+    console.log(`Restaurante con ID ${id} eliminado correctamente`);
+    res.status(200).json({ message: 'Restaurante eliminado correctamente' });
   } catch (error) {
     console.error('Error al eliminar restaurante:', error);
     res.status(500).json({ message: 'Error al eliminar restaurante' });
   }
 };
+

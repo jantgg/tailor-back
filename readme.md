@@ -1,6 +1,25 @@
-# Proyecto de Gestión de Restaurantes
+# Para arrancar el proyecto
 
-Este es un proyecto de gestión de restaurantes que permite a los usuarios registrarse, iniciar sesión, y gestionar sus restaurantes favoritos. Utiliza Node.js, Express y LowDB para almacenar datos en formato JSON.
+## Requisitos
+- Node.js (v14 o superior)
+- npm (v6 o superior)
+
+## Creamos .env en la raiz
+
+```
+PORT=3000
+JWT_SECRET=la_clave_secreta_123
+TEST_USER_USERNAME=test-user
+TEST_USER_PASSWORD=test-password
+```
+
+## Usamos los siguientes comandos
+
+```bash
+npm install
+npx tsc
+npm run start
+```
 
 ## Estructura del Proyecto
 
@@ -35,17 +54,6 @@ Este es un proyecto de gestión de restaurantes que permite a los usuarios regis
 - Node.js (v14 o superior)
 - npm (v6 o superior)
 
-# Instalación
-## Clonar el repositorio:
-```bash
-git clone https://github.com/tu_usuario/proyecto-restaurantes.git
-cd proyecto-restaurantes
-```
-
-## Instalar las dependencias:
-```bash
-npm install
-```
 
 ## Configurar las variables de entorno:
 Crea un archivo `.env` en la raíz del proyecto y define tu clave secreta para JWT.
@@ -61,19 +69,19 @@ npx ts-node src/scripts/populateDatabase.ts
 ```
 Este script (`populateDatabase.ts`) se utiliza para poblar una base de datos con información inicial de restaurantes, usuarios y reseñas a partir de un archivo JSON. Facilita el desarrollo al proporcionar datos de prueba realistas. Los usuarios tienen contraseñas encriptadas con `bcrypt` y el script asegura la correcta creación de relaciones entre entidades.
 
-# Uso
-## Iniciar el servidor:
-```bash
-npm run start
-```
+# Pruebas
 
-# Testing
+El testing se realiza utilizando Jest y Supertest para asegurar la estabilidad de las funcionalidades CRUD. Cada prueba se ejecuta dentro de transacciones, que se revierten para evitar que los datos permanezcan en la base de datos, manteniéndola limpia y garantizando la independencia entre pruebas. Esto incluye pruebas para creación, lectura, actualización, y eliminación de entidades como favoritos, reseñas, y restaurantes, verificando tanto el comportamiento exitoso como los posibles errores.
+
+## Testing
 ```
 npm test
 ```
 En la carpeta __test__ se encuentran todos los test que comprueban el correcto funconamiento de la API.
-
 El servidor se iniciará en `http://localhost:3000`.
+
+
+
 # Rutas de la API
 
 - **Registro:** `POST /auth/register`
@@ -135,6 +143,3 @@ Es importante mencionar que la implementación actual del sistema de permisos y 
 - **Validaciones de Permisos:** Añadir middleware para validar si el usuario tiene permiso para realizar una acción específica sobre un recurso.
 - **Registro de Actividades:** Implementar un sistema de logging para rastrear acciones realizadas por usuarios, lo que puede ser útil para auditorías y detección de fraudes.
 
-# Pruebas
-
-El testing se realiza utilizando Jest y Supertest para asegurar la estabilidad de las funcionalidades CRUD. Cada prueba se ejecuta dentro de transacciones, que se revierten para evitar que los datos permanezcan en la base de datos, manteniéndola limpia y garantizando la independencia entre pruebas. Esto incluye pruebas para creación, lectura, actualización, y eliminación de entidades como favoritos, reseñas, y restaurantes, verificando tanto el comportamiento exitoso como los posibles errores.

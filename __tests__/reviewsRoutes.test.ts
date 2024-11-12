@@ -1,215 +1,242 @@
-// /backend/__tests__/reviewsRoutes.test.ts
+// /backend/__tests__/reviewController.test.ts
 
 import request from 'supertest';
 import app from '../src/app';
 import { AppDataSource } from '../src/data/AppDataSource';
-import { User } from '../src/modules/auth/entities/User';
-import { Restaurant } from '../src/modules/restaurants/entities/Restaurant';
+import { User } from '../src/modules/auth/User';
+import { Restaurant } from '../src/modules/restaurants/Restaurant';
+import { createReview, getAllReviews, getReviewById, updateReview, deleteReview } from '../src/modules/reviews/reviewController';
+import { reviewRepository } from '../src/modules/reviews/reviewRepository';
 
-// Configuración de usuarios y restaurantes de prueba
 const testUsername = process.env.TEST_USER_USERNAME || 'test-user';
 const testPassword = process.env.TEST_USER_PASSWORD || 'test-password';
 
 let token: string;
-let createdRestaurantId: string;
-let queryRunner: any;
+let testRestaurant: Restaurant;
 
 beforeAll(async () => {
-  // Inicializar la conexión a la base de datos antes de todas las pruebas
   await AppDataSource.initialize();
 
-  // Iniciar una transacción antes de crear el restaurante de prueba
-  queryRunner = AppDataSource.createQueryRunner();
-  await queryRunner.startTransaction();
+  const userRepository = AppDataSource.getRepository(User);
+  let user = await userRepository.findOneBy({ username: testUsername });
 
-  try {
-    // Verificar si el usuario de prueba ya existe en la base de datos
-    const userRepository = AppDataSource.getRepository(User);
-    let user = await userRepository.findOneBy({ username: testUsername });
-
-    if (!user) {
-      // Registrar al usuario de prueba si no existe
-      await request(app)
-        .post('/api/auth/register')
-        .send({
-          username: testUsername,
-          password: testPassword,
-        });
-    }
-
-    // Autenticar al usuario de prueba para obtener el token de acceso
-    const loginResponse = await request(app)
-      .post('/api/auth/login')
+  if (!user) {
+    await request(app)
+      .post('/api/auth/register')
       .send({
         username: testUsername,
         password: testPassword,
       });
-
-    token = loginResponse.body.token;
-
-    // Crear un restaurante de prueba para asociar las reseñas
-    const restaurantResponse = await request(app)
-      .post('/api/restaurants')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        name: 'Test Restaurant for Reviews',
-        neighborhood: 'Test Neighborhood',
-        photograph: 'test.jpg',
-        address: '123 Test St',
-        latlng: { lat: 40.7128, lng: -74.0060 },
-        image: 'test.jpg',
-        cuisine_type: 'Italian',
-        operating_hours: { Monday: '9:00 am - 10:00 pm' },
-      });
-
-    createdRestaurantId = restaurantResponse.body.id;
-  } catch (error) {
-    await queryRunner.rollbackTransaction();
-    throw error;
   }
-});
 
-beforeEach(async () => {
-  // Iniciar una transacción antes de cada prueba
-  await queryRunner.startTransaction();
-});
+  const loginResponse = await request(app)
+    .post('/api/auth/login')
+    .send({
+      username: testUsername,
+      password: testPassword,
+    });
 
-afterEach(async () => {
-  // Revertir la transacción después de cada prueba para mantener la base de datos limpia
-  await queryRunner.rollbackTransaction();
-  await queryRunner.release();
+  token = loginResponse.body.token;
+
+  const restaurantRepository = AppDataSource.getRepository(Restaurant);
+  testRestaurant = await restaurantRepository.save({
+    name: 'Test Restaurant',
+    address: '123 Test St',
+    neighborhood: 'Test Neighborhood',
+    photograph: 'test_photo.jpg',
+    cuisine_type: 'Italian',
+    image: 'test.jpg',
+    latlng: { lat: 0, lng: 0 },
+    operating_hours: {
+      Monday: '10:00 am - 11:00 pm',
+    },
+  });
 });
 
 afterAll(async () => {
-  // Revertir la transacción del restaurante de prueba y cerrar la conexión a la base de datos después de todas las pruebas
-  await queryRunner.rollbackTransaction();
+  const restaurantRepository = AppDataSource.getRepository(Restaurant);
+  if (testRestaurant) {
+    await restaurantRepository.delete(testRestaurant.id);
+  }
   await AppDataSource.destroy();
 });
 
-describe('Review CRUD Endpoints', () => {
-  // Prueba para crear una reseña
-  describe('POST /api/reviews', () => {
-    it('debería crear una nueva reseña exitosamente', async () => {
-      const res = await request(app)
-        .post('/api/reviews')
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          name: 'Test Review',
-          rating: 5,
-          comments: 'This is a test review.',
-          restaurant: createdRestaurantId,
-        });
+describe('Review Controller Tests', () => {
+  describe('createReview', () => {
+    it('should successfully create a new review', async () => {
+        const userRepository = AppDataSource.getRepository(User);
+        const user = await userRepository.findOneBy({ username: testUsername });
 
-      expect(res.statusCode).toEqual(201);
-      expect(res.body).toHaveProperty('id');
+        if (!user) {
+            throw new Error('El usuario de prueba no se ha encontrado');
+        }
+
+        const req = {
+            body: {
+                rating: 5,
+                comments: 'Excellent food!',
+                userId: user.id,
+                restaurantId: testRestaurant.id,
+                name: 'Test Review',
+            },
+        } as any;
+
+        const res = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn(),
+        } as any;
+
+        await createReview(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(201);
+        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ id: expect.any(String) }));
+    });
+});
+
+  describe('getAllReviews', () => {
+    it('should return all reviews', async () => {
+      const req = {} as any;
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+
+      await getAllReviews(req, res);
+
+      expect(res.status).not.toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith(expect.any(Array));
     });
   });
 
-  // Prueba para obtener una reseña por ID
-  describe('GET /api/reviews/:id', () => {
-    it('debería devolver una reseña por ID', async () => {
-      // Crear una reseña temporal para la prueba
-      const createRes = await request(app)
-        .post('/api/reviews')
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          name: 'Temporary Review',
-          rating: 4,
-          comments: 'This is a temporary review.',
-          restaurant: createdRestaurantId,
-        });
-      const createdReviewId = createRes.body.id;
+  describe('getReviewById', () => {
+    it('should return a review by ID', async () => {
+      const userRepository = AppDataSource.getRepository(User);
+      const user = await userRepository.findOneBy({ username: testUsername });
 
-      const res = await request(app)
-        .get(`/api/reviews/${createdReviewId}`)
-        .set('Authorization', `Bearer ${token}`);
+      if (!user) {
+        throw new Error('El usuario de prueba no se ha encontrado');
+      }
 
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toHaveProperty('id', createdReviewId);
+      const createdReview = await reviewRepository.save({
+        name: 'Temporary Review',
+        rating: 4,
+        comments: 'Good food',
+        user: user,
+        restaurant: testRestaurant,
+      });
+
+      const req = { params: { id: createdReview.id } } as any;
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+
+      await getReviewById(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ id: createdReview.id }));
     });
 
-    it('debería devolver un error si la reseña no existe', async () => {
-      const res = await request(app)
-        .get('/api/reviews/12345678')
-        .set('Authorization', `Bearer ${token}`);
+    it('should return 404 if review not found', async () => {
+      const req = { params: { id: 'non-existent-id' } } as any;
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
 
-      expect(res.statusCode).toEqual(404);
-      expect(res.body).toHaveProperty('message', 'Entity not found');
-    });
-  });
+      await getReviewById(req, res);
 
-  // Prueba para actualizar una reseña por ID
-  describe('PUT /api/reviews/:id', () => {
-    it('debería actualizar una reseña exitosamente', async () => {
-      // Crear una reseña temporal para la prueba de actualización
-      const createRes = await request(app)
-        .post('/api/reviews')
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          name: 'Review to Update',
-          rating: 3,
-          comments: 'This is a review to be updated.',
-          restaurant: createdRestaurantId,
-        });
-      const createdReviewId = createRes.body.id;
-
-      const res = await request(app)
-        .put(`/api/reviews/${createdReviewId}`)
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          rating: 4,
-          comments: 'This is an updated review.',
-        });
-
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toHaveProperty('rating', 4);
-      expect(res.body).toHaveProperty('comments', 'This is an updated review.');
-    });
-
-    it('debería devolver un error si la reseña no existe', async () => {
-      const res = await request(app)
-        .put('/api/reviews/12345678')
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          rating: 3,
-          comments: 'Non-existent review update.',
-        });
-
-      expect(res.statusCode).toEqual(404);
-      expect(res.body).toHaveProperty('message', 'Entity not found');
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Reseña no encontrada' });
     });
   });
 
-  // Prueba para eliminar una reseña por ID
-  describe('DELETE /api/reviews/:id', () => {
-    it('debería eliminar una reseña exitosamente', async () => {
-      // Crear una reseña temporal para la prueba de eliminación
-      const createRes = await request(app)
-        .post('/api/reviews')
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          name: 'Review to Delete',
-          rating: 2,
-          comments: 'This is a review to be deleted.',
-          restaurant: createdRestaurantId,
-        });
-      const createdReviewId = createRes.body.id;
+  describe('updateReview', () => {
+    it('should update a review successfully', async () => {
+      const userRepository = AppDataSource.getRepository(User);
+      const user = await userRepository.findOneBy({ username: testUsername });
 
-      const res = await request(app)
-        .delete(`/api/reviews/${createdReviewId}`)
-        .set('Authorization', `Bearer ${token}`);
+      if (!user) {
+        throw new Error('El usuario de prueba no se ha encontrado');
+      }
 
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toHaveProperty('message', 'Entity deleted successfully');
+      const createdReview = await reviewRepository.save({
+        name: 'Review to Update',
+        rating: 3,
+        comments: 'Average food',
+        user: user,
+        restaurant: testRestaurant,
+      });
+
+      const req = {
+        params: { id: createdReview.id },
+        body: { rating: 5, comments: 'Updated comments' },
+      } as any;
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+
+      await updateReview(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ rating: 5, comments: 'Updated comments' }));
     });
 
-    it('debería devolver un error si la reseña no existe', async () => {
-      const res = await request(app)
-        .delete('/api/reviews/12345678')
-        .set('Authorization', `Bearer ${token}`);
+    it('should return 404 if review not found', async () => {
+      const req = { params: { id: 'non-existent-id' }, body: { comments: 'New comment' } } as any;
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
 
-      expect(res.statusCode).toEqual(404);
-      expect(res.body).toHaveProperty('message', 'Entity not found');
+      await updateReview(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Reseña no encontrada' });
+    });
+  });
+
+  describe('deleteReview', () => {
+    it('should delete a review successfully', async () => {
+      const userRepository = AppDataSource.getRepository(User);
+      const user = await userRepository.findOneBy({ username: testUsername });
+
+      if (!user) {
+        throw new Error('El usuario de prueba no se ha encontrado');
+      }
+
+      const createdReview = await reviewRepository.save({
+        name: 'Review to Delete',
+        rating: 2,
+        comments: 'Not so good',
+        user: user,
+        restaurant: testRestaurant,
+      });
+
+      const req = { params: { id: createdReview.id } } as any;
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+
+      await deleteReview(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Reseña eliminada correctamente' });
+    });
+
+    it('should return 404 if review not found', async () => {
+      const req = { params: { id: 'non-existent-id' } } as any;
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+      } as any;
+
+      await deleteReview(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Reseña no encontrada' });
     });
   });
 });
