@@ -9,7 +9,7 @@ export const reviewRepository = AppDataSource.getRepository(Review).extend({
   async findAllByRestaurant(restaurantId: string) {
     return this.find({
       where: { restaurant: { id: restaurantId } },
-      relations: ['restaurant', 'user'], // Carga las relaciones necesarias
+      relations: ['restaurant', 'user'],
     });
   },
 
@@ -17,7 +17,7 @@ export const reviewRepository = AppDataSource.getRepository(Review).extend({
   async findByIdAndRestaurant(reviewId: string, restaurantId: string) {
     return this.findOne({
       where: { id: reviewId, restaurant: { id: restaurantId } },
-      relations: ['restaurant', 'user'], // Carga las relaciones necesarias
+      relations: ['restaurant', 'user'],
     });
   },
 });

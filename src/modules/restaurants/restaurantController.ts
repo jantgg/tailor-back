@@ -45,14 +45,35 @@ export const getRestaurantById = async (req: Request, res: Response): Promise<vo
 
 export const createRestaurant = async (req: Request, res: Response): Promise<void> => {
   try {
-    const data = req.body;
-    const newRestaurant = await restaurantRepository.createRestaurant(data);
+    const { name, address, image } = req.body;
+
+    // Valores estáticos ya que el formulario en front está incompleto
+    const newRestaurant = await restaurantRepository.createRestaurant({
+      name,
+      address,
+      image,
+      neighborhood: "Default Neighborhood",
+      photograph: "default.jpg",
+      cuisine_type: "International",
+      latlng: { lat: 0, lng: 0 },
+      operating_hours: {
+        Monday: "9:00 AM - 5:00 PM",
+        Tuesday: "9:00 AM - 5:00 PM",
+        Wednesday: "9:00 AM - 5:00 PM",
+        Thursday: "9:00 AM - 5:00 PM",
+        Friday: "9:00 AM - 5:00 PM",
+        Saturday: "Closed",
+        Sunday: "Closed"
+      }
+    });
+
     res.status(201).json(newRestaurant);
   } catch (error) {
     console.error('Error al crear restaurante:', error);
     res.status(500).json({ message: 'Error al crear restaurante' });
   }
 };
+
 
 export const updateRestaurant = async (req: Request, res: Response): Promise<void> => {
   try {

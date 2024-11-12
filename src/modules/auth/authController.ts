@@ -42,28 +42,27 @@ export const login: RequestHandler = async (req: Request, res: Response): Promis
   const { username, password } = req.body;
 
   try {
-    // Buscar el usuario en la base de datos
     const user = await userRepository.findOneBy({ username });
     if (!user) {
       res.status(401).json({ error: 'Credenciales inválidas' });
       return;
     }
 
-    // Verificar la contraseña
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       res.status(401).json({ error: 'Credenciales inválidas' });
       return;
     }
 
-    // Generar un token JWT
     const token = jwt.sign(
       { id: user.id, username: user.username },
       process.env.JWT_SECRET || 'la_clave_secreta_123',
       { expiresIn: '1h' }
     );
+    
+    console.log('Respuesta de login:', { id: user.id, username: user.username, token });
 
-    res.json({ message: 'Login exitoso', token });
+    res.json({ message: 'Login exitoso', token, user: { id: user.id, username: user.username } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error interno del servidor' });

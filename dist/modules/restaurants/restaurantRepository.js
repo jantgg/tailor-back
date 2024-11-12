@@ -15,10 +15,26 @@ const AppDataSource_1 = require("../../data/AppDataSource");
 const Restaurant_1 = require("./Restaurant");
 exports.restaurantRepository = AppDataSource_1.AppDataSource.getRepository(Restaurant_1.Restaurant).extend({
     findAllWithReviews() {
-        return this.find({ relations: ['reviews'] });
+        return this.find({ relations: ['reviews', 'reviews.user'] });
     },
     findByIdWithReviews(id) {
-        return this.findOne({ where: { id }, relations: ['reviews'] });
+        return this.findOne({
+            where: { id },
+            relations: ['reviews', 'reviews.user'], // Incluye el usuario en cada review
+            select: {
+                reviews: {
+                    id: true,
+                    name: true,
+                    rating: true,
+                    comments: true,
+                    createdAt: true,
+                    user: {
+                        id: true,
+                        username: true, // Solo selecciona id y username del usuario
+                    },
+                },
+            },
+        });
     },
     createRestaurant(data) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -29,7 +45,10 @@ exports.restaurantRepository = AppDataSource_1.AppDataSource.getRepository(Resta
     updateRestaurant(id, data) {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.update(id, data);
-            return this.findOne({ where: { id }, relations: ['reviews'] });
+            return this.findOne({
+                where: { id },
+                relations: ['reviews', 'reviews.user'],
+            });
         });
     },
     deleteRestaurant(id) {

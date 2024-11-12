@@ -20,7 +20,7 @@ exports.reviewRepository = AppDataSource_1.AppDataSource.getRepository(Review_1.
         return __awaiter(this, void 0, void 0, function* () {
             return this.find({
                 where: { restaurant: { id: restaurantId } },
-                relations: ['restaurant', 'user'], // Carga las relaciones necesarias
+                relations: ['restaurant', 'user'],
             });
         });
     },
@@ -29,7 +29,7 @@ exports.reviewRepository = AppDataSource_1.AppDataSource.getRepository(Review_1.
         return __awaiter(this, void 0, void 0, function* () {
             return this.findOne({
                 where: { id: reviewId, restaurant: { id: restaurantId } },
-                relations: ['restaurant', 'user'], // Carga las relaciones necesarias
+                relations: ['restaurant', 'user'],
             });
         });
     },

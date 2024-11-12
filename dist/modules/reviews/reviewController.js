@@ -11,6 +11,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteReview = exports.updateReview = exports.createReview = exports.getReviewById = exports.getAllReviews = void 0;
 const reviewRepository_1 = require("./reviewRepository");
+const AppDataSource_1 = require("../../data/AppDataSource");
+const User_1 = require("../auth/User");
+const Restaurant_1 = require("../restaurants/Restaurant");
 const getAllReviews = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const reviews = yield reviewRepository_1.reviewRepository.find();
@@ -40,8 +43,23 @@ const getReviewById = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 exports.getReviewById = getReviewById;
 const createReview = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const data = req.body;
-        const newReview = reviewRepository_1.reviewRepository.create(data);
+        const { rating, comments, userId, restaurantId, name } = req.body;
+        const userRepository = AppDataSource_1.AppDataSource.getRepository(User_1.User);
+        const restaurantRepository = AppDataSource_1.AppDataSource.getRepository(Restaurant_1.Restaurant);
+        // Buscar usuario y restaurante por sus IDs
+        const user = yield userRepository.findOne({ where: { id: userId } });
+        const restaurant = yield restaurantRepository.findOne({ where: { id: restaurantId } });
+        if (!user || !restaurant) {
+            res.status(404).json({ message: 'Usuario o restaurante no encontrado' });
+            return;
+        }
+        const newReview = reviewRepository_1.reviewRepository.create({
+            name,
+            rating,
+            comments,
+            user,
+            restaurant,
+        });
         yield reviewRepository_1.reviewRepository.save(newReview);
         res.status(201).json(newReview);
     }

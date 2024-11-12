@@ -8,7 +8,7 @@ export const favoriteRepository = AppDataSource.getRepository(Favorite).extend({
   async findAllByUser(userId: string) {
     return this.find({
       where: { user: { id: userId } },
-      relations: ['restaurant', 'user'], // Carga las relaciones necesarias
+      relations: ['restaurant', 'user'],
     });
   },
 

@@ -19,7 +19,7 @@ exports.favoriteRepository = AppDataSource_1.AppDataSource.getRepository(Favorit
         return __awaiter(this, void 0, void 0, function* () {
             return this.find({
                 where: { user: { id: userId } },
-                relations: ['restaurant', 'user'], // Carga las relaciones necesarias
+                relations: ['restaurant', 'user'],
             });
         });
     },

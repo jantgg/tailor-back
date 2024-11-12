@@ -45,8 +45,26 @@ const getRestaurantById = (req, res) => __awaiter(void 0, void 0, void 0, functi
 exports.getRestaurantById = getRestaurantById;
 const createRestaurant = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const data = req.body;
-        const newRestaurant = yield restaurantRepository_1.restaurantRepository.createRestaurant(data);
+        const { name, address, image } = req.body;
+        // Valores estáticos ya que el formulario en front está incompleto
+        const newRestaurant = yield restaurantRepository_1.restaurantRepository.createRestaurant({
+            name,
+            address,
+            image,
+            neighborhood: "Default Neighborhood",
+            photograph: "default.jpg",
+            cuisine_type: "International",
+            latlng: { lat: 0, lng: 0 },
+            operating_hours: {
+                Monday: "9:00 AM - 5:00 PM",
+                Tuesday: "9:00 AM - 5:00 PM",
+                Wednesday: "9:00 AM - 5:00 PM",
+                Thursday: "9:00 AM - 5:00 PM",
+                Friday: "9:00 AM - 5:00 PM",
+                Saturday: "Closed",
+                Sunday: "Closed"
+            }
+        });
         res.status(201).json(newRestaurant);
     }
     catch (error) {

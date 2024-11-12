@@ -1,6 +1,9 @@
 // /backend/src/modules/restaurants/reviewController.ts
 import { Request, Response } from 'express';
 import { reviewRepository } from './reviewRepository';
+import { AppDataSource } from '../../data/AppDataSource';
+import { User } from '../auth/User';
+import { Restaurant } from '../restaurants/Restaurant';
 
 export const getAllReviews = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -29,8 +32,23 @@ export const getReviewById = async (req: Request, res: Response): Promise<void> 
 
 export const createReview = async (req: Request, res: Response): Promise<void> => {
   try {
-    const data = req.body;
-    const newReview = reviewRepository.create(data);
+    const { rating, comments, userId, restaurantId, name } = req.body;
+    const userRepository = AppDataSource.getRepository(User);
+    const restaurantRepository = AppDataSource.getRepository(Restaurant);
+    // Buscar usuario y restaurante por sus IDs
+    const user = await userRepository.findOne({ where: { id: userId } });
+    const restaurant = await restaurantRepository.findOne({ where: { id: restaurantId } });
+    if (!user || !restaurant) {
+      res.status(404).json({ message: 'Usuario o restaurante no encontrado' });
+      return;
+    }
+    const newReview = reviewRepository.create({
+      name,
+      rating,
+      comments,
+      user,
+      restaurant,
+    });
     await reviewRepository.save(newReview);
     res.status(201).json(newReview);
   } catch (error) {

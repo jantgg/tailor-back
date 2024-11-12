@@ -50,21 +50,19 @@ exports.register = register;
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, password } = req.body;
     try {
-        // Buscar el usuario en la base de datos
         const user = yield userRepository.findOneBy({ username });
         if (!user) {
             res.status(401).json({ error: 'Credenciales inválidas' });
             return;
         }
-        // Verificar la contraseña
         const isPasswordValid = yield bcryptjs_1.default.compare(password, user.password);
         if (!isPasswordValid) {
             res.status(401).json({ error: 'Credenciales inválidas' });
             return;
         }
-        // Generar un token JWT
         const token = jsonwebtoken_1.default.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET || 'la_clave_secreta_123', { expiresIn: '1h' });
-        res.json({ message: 'Login exitoso', token });
+        console.log('Respuesta de login:', { id: user.id, username: user.username, token });
+        res.json({ message: 'Login exitoso', token, user: { id: user.id, username: user.username } });
     }
     catch (error) {
         console.error(error);
